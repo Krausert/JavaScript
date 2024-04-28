@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Leon</title>
+</head>
+
+<body>
+  <!-- 贪吃蛇游戏容器 -- 地图 -->
+  <div id="gameMap" style="overflow: hidden;"></div>
+  <script type="module">
+    import './jquery/jquery.js'
+    import GameMap from "./modules/gameMap.js";
+    import Food from "./modules/food.js";
+    import Snake from "./modules/snake.js";
+
+    // 实例化
+    let gameMap = new GameMap('#gameMap');
+    let food = new Food();
+    let snake = new Snake();
+
+    food.show(gameMap.map)
+
+    snake.show(gameMap.map);
+
+    let timerId = setInterval(() => {
+      snake.run(food,gameMap.map);
+       每次移动校验是否游戏结束
+      if (snake.die()) {
+        alert('游戏结束'); clearInterval(timerId)
+      }
+    }, 100)
+
+
+    $(window).keydown(({ keyCode }) => {  此处解构赋值事件对象中的keyCode按键键码          
+    //   左37 上38 右39 下40
+       根据键码判断按下键
+      switch (keyCode) {
+    //     根据上一格移动方向判断             
+    //     37则表示按下的是方向左按键 但是如果上一格移动方向为右则不修改移动方向,否则移动方向改为左
+        case 37: snake.direct = snake.prevDirect == 'right' ? 'right' : 'left'; break;
+        case 38: snake.direct = snake.prevDirect == 'down' ? 'down' : 'up'; break;
+        case 39: snake.direct = snake.prevDirect == 'left' ? 'left' : 'right'; break;
+        case 40: snake.direct = snake.prevDirect == 'up' ? 'up' : 'down'; break;
+      }
+      console.log(keyCode, snake.direct)
+    })
+  </script>
+  <script type='module'>
+    //  导入地图,食物,蛇及jq模块
+     import GameMap from "./modules/gameMap.js";
+     import Food from './modules/food.js'
+     import Snake from './modules/snake.js'
+     import './jquery/jquery.js'
+
+    //  实例化游戏地图----传递游戏地图容器选择器
+     gameMap = new GameMap('#gameMap');
+    //  实例化食物类----传递游戏地图容DOM
+     food = new Food(gameMap.map);
+    //  实例化蛇类----传递游戏地图容DOM
+     snake = new Snake(gameMap.map);
+
+    //  开始方法
+     function start() {
+       gameMap.map.empty();
+
+    //    重新开始---重新实例化      
+    //    实例化食物类----传递游戏地图容DOM
+       food = new Food(gameMap.map);
+    //    实例化蛇类----传递游戏地图容DOM
+       snake = new Snake(gameMap.map);
+
+    //    创建一个开始元素 按钮
+       let $start = $('<div><button>开始</button></div>');
+        设置开始元素样式
+       $start.css({
+         width: 100,
+         height: 50,
+         backgroundColor: 'skyblue',
+         position: 'absolute',
+         left: '50%',
+         top: '50%',
+         transform: 'translateX(-50%) translateY(-50%)',
+         textAlign: 'center',
+         lineHeight: '50px',
+         borderRadius: '10px'
+       })
+        设置开始按钮元素样式并绑定点击事件
+       $start.find('button').css({
+         cursor: 'pointer',
+         width: '60px',
+         height: '30px',
+         borderRadius: '5px'
+       }).click(() => {
+          食物和蛇显示
+         food.show(gameMap.map);
+         snake.show(gameMap.map);
+          蛇连续移动
+         move();
+         $start.remove();
+
+         $(window).off('keydown');
+      //    给页面键盘事件 ---> 按键控制方向
+         $(window).keydown(({ keyCode }) => {  此处解构赋值事件对象中的keyCode按键键码          
+      //      左37 上38 右39 下40
+            根据键码判断按下键
+           switch (keyCode) {
+      //        根据上一格移动方向判断             
+      //        37则表示按下的是方向左按键 但是如果上一格移动方向为右则不修改移动方向,否则移动方向改为左
+             case 37: snake.direct = snake.prevDirect == 'right' ? 'right' : 'left'; break;
+             case 38: snake.direct = snake.prevDirect == 'down' ? 'down' : 'up'; break;
+             case 39: snake.direct = snake.prevDirect == 'left' ? 'left' : 'right'; break;
+             case 40: snake.direct = snake.prevDirect == 'up' ? 'up' : 'down'; break;
+           }
+         })
+       })
+      //  将开始界面元素 追加到地图中
+       gameMap.map.append($start);
+     }
+     start();
+
+      结束方法
+     function over(score) {
+       clearInterval(timerId);
+       let $gameOver = $(`
+         <div class='over'>
+           <div>游戏结束</div>
+           <span>得分: <b>${score}</b></span>
+           <button>重新开始</button>
+         </div>
+       `);
+        设置结束界面的样式
+       $gameOver.css({
+         width: '100px',
+         height: '200px',
+         backgroundColor: 'deepskyblue',
+         opacity: '.8',
+         position: 'absolute',
+         left: '50%',
+         top: '50%',
+         transform: 'translateX(-50%) translateY(-50%)',
+         display: 'flex',
+         flexDirection: 'column',
+         justifyContent: 'space-evenly',
+         padding: '0 20px',
+         fontSize: '20px',
+         borderRadius: '10px; ',
+       }).find('div').css({
+         color: 'red',
+         fontWeight: 'bold',
+       })
+       $gameOver.find('b').css({
+         color: 'yellow',
+         fontWeight: 'bold',
+       })
+       $gameOver.find('button').css({
+         height: '35px',
+         borderRadius: '5px',
+         cursor: 'pointer',
+         fontSize: '18px',
+       }).click(() => {
+         start();  重新开始
+       })
+      //  将结束界面元素 追加到地图中
+       gameMap.map.append($gameOver);
+     }
+
+     timerId;  //定时器标识
+     function move() {
+        //使用定时器 连续移动
+       timerId = setInterval(() => {
+          定时器中执行蛇移动
+         snake.run(food, gameMap.map);
+          每次移动校验是否游戏结束
+         if (snake.die()) over(snake.getNum)
+       }, 100);
+     }
+
+  </script>
+  <script type="module">
+    import Game from  './modules/game.js';
+    new Game('#gameMap');
+  </script>
+</body>
+
+</html>
